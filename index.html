@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Informe de red y compartir por Gmail</title>
+</head>
+<body>
+  <h1>Informe de red</h1>
+  <p id="estado">Calculando velocidad...</p>
+  <button id="btnCompartir" disabled>Compartir por Gmail</button>
+
+  <script>
+    async function medirVelocidad() {
+      // Archivo alternativo que permite CORS y tiene tamaño conocido (~1MB)
+      const url = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg";
+
+      try {
+        const inicio = performance.now();
+        const respuesta = await fetch(url, { method: 'GET', cache: "no-store" });
+        if (!respuesta.ok) throw new Error("Error al descargar archivo");
+
+        // Obtengo tamaño del contenido descargado
+        const blob = await respuesta.blob();
+        const fin = performance.now();
+
+        const tamanioMB = blob.size / (1024 * 1024);
+        const tiempoSegundos = (fin - inicio) / 1000;
+        const velocidadMbps = (tamanioMB * 8) / tiempoSegundos;
+
+        return velocidadMbps.toFixed(2);
+      } catch (e) {
+        console.error("Error midiendo velocidad:", e);
+        return null;
+      }
+    }
+
+    async function prepararCorreo() {
+      const velocidad = await medirVelocidad();
+
+      const estadoEl = document.getElementById("estado");
+      if (velocidad === null) {
+        estadoEl.innerText = "Error calculando velocidad de red.";
+      } else {
+        estadoEl.innerText = `Velocidad estimada: ${velocidad} Mbps`;
+      }
+
+      const nombre = prompt("Introduce el nombre del dispositivo:", "Mi dispositivo");
+
+      const plataforma = navigator.platform || "Desconocida";
+      const navegador = navigator.userAgent || "Desconocido";
+      const tipoConexion = navigator.connection ? navigator.connection.effectiveType : "Desconocido";
+
+      const cuerpo = `
+Nombre del dispositivo: ${nombre}
+Plataforma: ${plataforma}
+Navegador: ${navegador}
+Tipo de conexión: ${tipoConexion}
+Velocidad estimada: ${velocidad ?? "N/D"} Mbps
+Fecha: ${new Date().toLocaleString()}
+      `.trim();
+
+      const cuerpoCodificado = encodeURIComponent(cuerpo);
+      const asunto = encodeURIComponent(`Informe de red - ${nombre}`);
+
+      const mailto = `mailto:dears2004pau@gmail.com?subject=${asunto}&body=${cuerpoCodificado}`;
+
+      const btn = document.getElementById("btnCompartir");
+      btn.disabled = false;
+      btn.onclick = () => {
+        window.location.href = mailto;
+      };
+    }
+
+    prepararCorreo();
+  </script>
+</body>
+</html>
