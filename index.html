@@ -7,8 +7,11 @@
 <body>
   <h1>Informe de red</h1>
   <p id="estado">Calculando velocidad...</p>
+  <label for="correoDestino">Correo de destino:</label>
+  <input type="email" id="correoDestino" placeholder="ejemplo@correo.com" required />
+  <br><br>
   <button id="btnCompartir" disabled>Compartir por Gmail</button>
-
+  
   <script>
     async function medirVelocidad() {
       // Archivo alternativo que permite CORS y tiene tamaño conocido (~1MB)
@@ -62,11 +65,17 @@ Fecha: ${new Date().toLocaleString()}
       const cuerpoCodificado = encodeURIComponent(cuerpo);
       const asunto = encodeURIComponent(`Informe de red - ${nombre}`);
 
-      const mailto = `mailto:dears2004pau@gmail.com?subject=${asunto}&body=${cuerpoCodificado}`;
-
       const btn = document.getElementById("btnCompartir");
+      const inputCorreo = document.getElementById("correoDestino");
+
       btn.disabled = false;
       btn.onclick = () => {
+        const correo = inputCorreo.value.trim();
+        if (!correo) {
+          alert("Por favor, introduce un correo de destino.");
+          return;
+        }
+        const mailto = `mailto:${correo}?subject=${asunto}&body=${cuerpoCodificado}`;
         window.location.href = mailto;
       };
     }
